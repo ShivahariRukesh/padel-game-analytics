@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "total_shots": 6,
+    "forehand_total": 5,
+    "backhand_total": 1,
+    "per_player": {
+      "1": {
+        "forehand": 2,
+        "backhand": 1
+      },
+      "2": {
+        "forehand": 3,
+        "backhand": 0
+      }
+    }
+  },
+  "shots": [
+    {
+      "frame": 12,
+      "timestamp": 0.5,
+      "shot_type": "forehand",
+      "player_id": "1"
+    },
+    {
+      "frame": 30,
+      "timestamp": 1.25,
+      "shot_type": "forehand",
+      "player_id": "2"
+    },
+    {
+      "frame": 54,
+      "timestamp": 2.25,
+      "shot_type": "forehand",
+      "player_id": "2"
+    },
+    {
+      "frame": 96,
+      "timestamp": 4.0,
+      "shot_type": "backhand",
+      "player_id": "1"
+    },
+    {
+      "frame": 128,
+      "timestamp": 5.333,
+      "shot_type": "forehand",
+      "player_id": "2"
+    },
+    {
+      "frame": 184,
+      "timestamp": 7.667,
+      "shot_type": "forehand",
+      "player_id": "1"
+    }
+  ]
+}
