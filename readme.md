@@ -4,7 +4,36 @@ A computer vision system for detecting and tracking tennis players, tennis racke
 The system processes an input tennis video, applies a mask to focus on the court region, tracks players using YOLO tracking, detects the tennis ball using a custom-trained YOLO model, and saves the annotated output video.
 
 
-
+## How it works
+ 
+**1. Load video metadata**
+`get_video_info` opens the input video and reads the FPS, total frame count, and true decoded resolution. This is used to size the output writer and timestamp every detected shot correctly.
+ 
+**2. Detect players and rackets**
+The input video is read in 64-frame chunks. Each chunk is masked with a court image (`input_cut_mask_image.png`) so only pixels inside the play area reach the model. YOLOv8x with BotSort persistent tracking is then run on each masked frame, returning a bounding box and a stable numeric `track_id` for every player, plus a separate `"racket"` entry when a tennis racket is visible.
+ 
+**3. Detect the ball**
+The same 64-frame chunks are passed to a custom-trained YOLO ball detector. It runs at a low confidence threshold (0.15) to maximise recall on motion-blurred or partially occluded frames, returning a bounding box for the ball in each frame where one is found.
+ 
+**4. Detect shot type**
+A pose-based YOLO model inspects each frame and classifies the visible player posture as either `forehand` or `backhand`, returning the class name and bounding box per frame.
+ 
+**5. Cache all detections**
+After each pass the full list of per-frame detections is saved to a `.pkl` stub file. On subsequent runs you can set `READ_*_FROM_STUB = True` to skip inference entirely and load the cached results instead.
+ 
+**6. Analyse shots (ShotCounter)**
+`ShotCounter.analyze` fuses the three detection lists into a shot log:
+- Missing ball positions are filled in by linear interpolation.
+- A smoothed horizontal velocity signal is computed for the ball's trajectory.
+- Every point where the velocity changes sign (ball reverses horizontal direction) is treated as a candidate hit.
+- Each candidate is confirmed by finding a matching `forehand` or `backhand` label within ±6 frames.
+- The closest player to the ball at that moment is assigned as the hitter.
+- Running forehand and backhand totals are tracked globally and per player.
+**7. Export shot data**
+The confirmed shot log is written to `output_data/shot_log.json` (with a summary block) and `output_data/shot_log.csv` (one row per shot).
+ 
+**8. Draw and save the output video**
+The input video is read in chunks one final time. For each frame, player and ball bounding boxes are drawn, and `ShotCounter.draw_overlay` stamps a semi-transparent HUD in the top-left corner showing the live forehand and backhand counts. The annotated frames are written to the output video file, trying four codec/container combinations (`mp4v`, `avc1`, `XVID`, `MJPG`) until one succeeds.
 
 
 ## Project Structure
@@ -121,6 +150,29 @@ On subsequent runs, flip to read_from_stub=True to skip re-inference and load ca
 frame,timestamp,shot_type,player_id
 ....., ........, ......., .........
 ```
+
+## Module reference
+ 
+### `PlayerTracker`
+Wraps YOLOv8x with BotSort persistent tracking. Applies a binary court mask before inference to suppress detections outside the play area. Tracks both `person` (assigned a numeric `track_id`) and `tennis racket` (stored under the key `"racket"`).
+ 
+### `BallTracker`
+Lightweight YOLO wrapper tuned for small, fast-moving objects. Uses a low confidence threshold (`0.15`) to improve recall on motion-blurred frames.
+ 
+### `ShotTypeDetector`
+Pose-based YOLO model that classifies the player's body posture as `forehand` or `backhand`. Only the class name and bounding box are retained per frame.
+ 
+### `ShotCounter`
+Fuses ball trajectory with shot-type labels to detect strokes:
+1. Interpolates missing ball positions linearly.
+2. Computes a smoothed horizontal velocity signal.
+3. Detects velocity-sign reversals (the ball changes direction → a hit occurred).
+4. Associates each hit with the nearest shot-type label (within `±SHOT_LABEL_WINDOW` frames) and the closest player.
+5. Renders a semi-transparent HUD scoreboard onto each frame.
+### `video_utils`
+- `iter_chunks` — memory-efficient frame iterator; yields `(start_index, frames)` batches.
+- `get_video_info` — returns FPS, total frame count, and true decoded resolution.
+- `save_video` — tries four codec/container combinations (`mp4v`, `avc1`, `XVID`, `MJPG`) and raises a clear error if none work.
 
 
 ### Video — `output_videos/output_video.mp4`
