@@ -4,31 +4,8 @@ import cv2
 import pickle
 
 from utils import iter_chunks, get_video_info
+from utils import INPUT_VIDEO_PATH, OUTPUT_VIDEO_PATH,MASKED_IMAGE_PATH, MODEL_TRACKER,MODEL_BALL, MODEL_SHOT_TYPE, STUB_PLAYER,STUB_BALL, STUB_SHOT_TYPE, CHUNK_SIZE, OUTPUT_FPS, READ_PLAYER_FROM_STUB,READ_BALL_FROM_STUB, READ_SHOTTYPE_FROM_STUB
 from detectors import PlayerTracker, BallTracker, ShotTypeDetector, ShotCounter
-
-
-
-INPUT_VIDEO_PATH  = "input_videos/input_sample_video.mp4"
-OUTPUT_VIDEO_PATH = "output_videos/output_sample_video_2.mp4"
-MASKED_IMAGE_PATH = "input_videos/input_cut_mask_image.png"
-
-MODEL_TRACKER   = "yolo_model_weights/yolov8x.pt"
-MODEL_BALL      = "yolo_model_weights/last.pt"
-MODEL_SHOT_TYPE = "yolo_model_weights/pose/best.pt"
-
-STUB_PLAYER    = "tracker_stubs/player_detections_sample_2.pkl"
-STUB_BALL      = "tracker_stubs/ball_detections_sample_2.pkl"
-STUB_SHOT_TYPE = "tracker_stubs/shot_type_detections_sample_2.pkl"
-
-
-
-
-CHUNK_SIZE              = 64
-OUTPUT_FPS              = 24.0
-READ_PLAYER_FROM_STUB   = False
-READ_BALL_FROM_STUB     = False
-READ_SHOTTYPE_FROM_STUB = False
-
 
 
 def _load_stub(path):

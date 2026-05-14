@@ -1,18 +1,10 @@
 import json
 import csv
 import os
-
 import cv2
 import numpy as np
 
-
-VELOCITY_SMOOTH_WINDOW   = 4    
-MIN_VELOCITY_PX          = 8    
-MIN_FRAMES_BETWEEN_HITS  = 18   
-SHOT_LABEL_WINDOW        = 6    
-FLASH_DURATION_FRAMES    = 14   
-
-
+from utils import VELOCITY_SMOOTH_WINDOW, MIN_VELOCITY_PX, MIN_FRAMES_BETWEEN_HITS, SHOT_LABEL_WINDOW, FLASH_DURATION_FRAMES
 
 class ShotCounter:
     
